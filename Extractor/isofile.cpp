@@ -89,7 +89,7 @@ bool IsoFile::ExtractToDir(const char* dir) {
     std::cerr << "ERR: No files to extract." << std::endl;
     return false;
   }
-  std::filesystem::path base_path(dir);
+  const std::filesystem::path base_path(dir);
   for (const FileEntry& file_entry : file_entries_) {
     std::filesystem::path path = base_path / file_entry.path;
     std::cout << "Extracting: " << path.string() << "..." << std::endl;

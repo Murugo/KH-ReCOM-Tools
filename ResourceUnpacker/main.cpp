@@ -10,8 +10,10 @@ namespace {
 const char kDefaultExtractDir[] = ".";
 
 void PrintUsage() {
-  std::cout << "Usage: khrecom-ps2-rsrc-unpacker.exe C:\\path\\to\\resou.rce "
-               "[-d C:\\optional\\extract\\dir\n]";
+  std::cout
+      << "Usage: khrecom-ps2-rsrc-unpacker.exe C:\\path\\to\\resou.rce \\\n"
+         "    [-d C:\\optional\\extract\\dir]"
+      << std::endl;
 }
 
 }  // namespace

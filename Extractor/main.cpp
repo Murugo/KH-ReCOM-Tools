@@ -10,8 +10,9 @@ namespace {
 const char kDefaultExtractDir[] = ".\\extract\\";
 
 void PrintUsage() {
-  std::cout << "Usage: khrecom-ps2-extractor.exe C:\\path\\to\\game.iso [-d "
-               "C:\\optional\\extract\\dir]\n";
+  std::cout << "Usage: khrecom-ps2-extractor.exe C:\\path\\to\\game.iso \\\n"
+               "    [-d C:\\optional\\extract\\dir]"
+            << std::endl;
 }
 
 }  // namespace
