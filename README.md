@@ -30,3 +30,26 @@ Sample usage:
 ```khrecom-ps2-rsrc-unpacker.exe C:\path\to\resou.rce -d C:\optional\extract\dir```
 
 By default, the unpacker will create a new folder in the working directory with the same name as the original file.
+
+## Blender Add-on
+
+<img src="img/blender-preview-0.png" alt="alt text" width="75%">
+
+An experimental Blender importer for both stages (.AZF) and models (.MDL). Compatible with Blender 2.8x.
+
+Installation Method A:
+
+1. Locate the add-ons folder for Blender. In Windows, this path is typically: `%appdata%\Blender Foundation\Blender\2.8x\scripts\addons\`
+2. Copy the `io_kh_recom\` folder into `addons\`.
+3. Open Blender, go to `Edit -> Preferences`, and select the `Add-ons` tab.
+4. Ensure the `Community` filter is selected, and locate `Import-Export: Kingdom Hearts Re:Chain of Memories` in the list. Click the checkmark next to this add-on to load it. Close the preferences window.
+5. Go to `File -> Import` and select either from the list of file formats:
+    * `Kingdom Hearts Re:COM Stage (.azf)`
+    * `Kingdom Hearts Re:COM Model (.mdl)`
+
+Installation Method B:
+
+1. Pack the contents of `io_kh_recom\` into a single ZIP file.
+2. Open Blender, go to `Edit -> Preferences`, and select the `Add-ons` tab.
+3. Click `Install...` and locate the ZIP you created in step 1.
+4. Follow steps 4 and 5 in method A.
