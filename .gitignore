@@ -1,4 +1,5 @@
 .vscode/
 build/
+**/__pycache__/
 
 Extractor/out/
