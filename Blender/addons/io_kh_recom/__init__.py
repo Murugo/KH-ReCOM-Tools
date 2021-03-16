@@ -20,6 +20,8 @@ if "bpy" in locals():
   import importlib
   if "import_azf" in locals():
     importlib.reload(import_azf)
+  if "import_gsd" in locals():
+    importlib.reload(import_gsd)
   if "import_mdl" in locals():
     importlib.reload(import_mdl)
 
@@ -100,6 +102,66 @@ class AZF_PT_import_options(bpy.types.Panel):
     layout.prop(operator, 'use_vertex_color_materials')
 
 
+class ImportKhReComGsd(bpy.types.Operator, ImportHelper):
+  """Load a Kingdom Hearts Re:Chain of Memories GSD file"""
+  bl_idname = "import_khrecom.gsd"
+  bl_label = "Import Kingdom Hearts Re:COM (PS2) Stage Gimmicks (GSD)"
+  bl_options = {'PRESET', 'UNDO'}
+
+  filename_ext = ".gsd"
+  filter_glob: StringProperty(default="*.gsd", options={'HIDDEN'})
+
+  import_shadow_model: BoolProperty(
+      name="Import Shadow Models",
+      description="Import models used for shadows.",
+      default=False,
+  )
+
+  use_vertex_color_materials: BoolProperty(
+      name="Use Vertex Color in Materials",
+      description=
+      "Automatically connect baked vertex colors in Blender materials if present. If unchecked, vertex color layers will still be imported for objects.",
+      default=True,
+  )
+
+  def execute(self, context):
+    from . import import_gsd
+
+    keywords = self.as_keywords(ignore=("filter_glob",))
+    status, msg = import_gsd.load(context, **keywords)
+    if msg:
+      self.report({'ERROR'}, msg)
+    return {status}
+
+  def draw(self, context):
+    pass
+
+
+class GSD_PT_import_options(bpy.types.Panel):
+  bl_space_type = 'FILE_BROWSER'
+  bl_region_type = 'TOOL_PROPS'
+  bl_label = "Import GSD"
+  bl_parent_id = "FILE_PT_operator"
+
+  @classmethod
+  def poll(cls, context):
+    sfile = context.space_data
+    operator = sfile.active_operator
+
+    return operator.bl_idname == "IMPORT_KHRECOM_OT_gsd"
+
+  def draw(self, context):
+    layout = self.layout
+    layout.use_property_split = True
+    layout.use_property_decorate = False
+
+    sfile = context.space_data
+    operator = sfile.active_operator
+
+    layout.prop(operator, 'import_shadow_model')
+    layout.prop(operator, 'use_vertex_color_materials')
+
+
 class ImportKhReComMdl(bpy.types.Operator, ImportHelper):
   """Load a Kingdom Hearts Re:Chain of Memories MDL file"""
   bl_idname = "import_khrecom.mdl"
@@ -163,14 +225,18 @@ class MDL_PT_import_options(bpy.types.Panel):
 def menu_func_import(self, context):
   self.layout.operator(ImportKhReComAzf.bl_idname,
                        text="Kingdom Hearts Re:COM Stage (.azf)")
+  self.layout.operator(ImportKhReComGsd.bl_idname,
+                       text="Kingdom Hearts Re:COM Stage Gimmicks (.gsd)")
   self.layout.operator(ImportKhReComMdl.bl_idname,
                        text="Kingdom Hearts Re:COM Model (.mdl)")
 
 
 classes = (
     ImportKhReComAzf,
+    ImportKhReComGsd,
     ImportKhReComMdl,
     AZF_PT_import_options,
+    GSD_PT_import_options,
     MDL_PT_import_options,
 )
 
