@@ -19,6 +19,7 @@ import re
 
 from . import import_mdl
 from . import materials
+from . import mesh_parser
 from . import readutil
 
 WORLD_TRANSFORM = mathutils.Matrix.Rotation(math.radians(90.0), 4, 'X')
@@ -37,7 +38,7 @@ class GsdParser:
     self.rsrc_obj_map = dict()
     self.directory = ''
     self.fallback_directory = ''
-  
+
   def parse(self, filepath):
     f = readutil.BinaryFileReader(filepath)
     self.directory = os.path.dirname(filepath)
@@ -46,8 +47,9 @@ class GsdParser:
     gdirnum_re = re.search('g([0-9]+).DAT', gdirname, re.IGNORECASE)
     if gdirnum_re:
       fallback_dir_num = int(gdirnum_re.group(1)) + 1100
-      self.fallback_directory = os.path.join(self.directory, f'..\\..\\g014.DAT\\{fallback_dir_num}')
-    
+      self.fallback_directory = os.path.join(
+          self.directory, f'..\\..\\g014.DAT\\{fallback_dir_num}')
+
     gsd_files = readutil.read_rsrc_header(f)
     if len(gsd_files) == 0:
       raise GsdImportError('Rsrc header is empty')
@@ -98,12 +100,7 @@ class GsdParser:
       translation_matrix[0][3] = position[0]
       translation_matrix[1][3] = position[1]
       translation_matrix[2][3] = position[2]
-      transform = (
-          WORLD_TRANSFORM @ translation_matrix @ rotation_matrix)
-      
-      # position, rotation_euler, _ = transform.decompose()
-      # bpy.ops.mesh.primitive_cube_add(location=new_loc,rotation=new_rot.to_euler())
-      # bpy.context.scene.objects[-1].name = f'Gimmick_{rsrc_id}_{unique_id}'
+      transform = (WORLD_TRANSFORM @ translation_matrix @ rotation_matrix)
 
       objects = []
       if rsrc_id not in self.rsrc_obj_map:
@@ -123,7 +120,7 @@ class GsdParser:
             # Parent mesh to new armature. The armature is always the first object in the list.
             obj_new.parent = objects[0]
             obj_new.modifiers['Armature'].object = objects[0]
-      
+
       for obj in objects:
         obj.name += f'_{unique_id}'
         if obj.type == 'ARMATURE':
@@ -145,7 +142,7 @@ class GsdParser:
 
     mdl_parser = import_mdl.MdlParser(self.options, self.mat_manager)
     return mdl_parser.parse_model(filepath)
-  
+
   def parse_textures(self):
     if not self.directory:
       return
@@ -153,7 +150,7 @@ class GsdParser:
     if self.fallback_directory:
       texture_files += self.get_texture_files(self.fallback_directory)
     self.mat_manager.load_textures(texture_files)
-  
+
   def get_texture_files(self, directory):
     texture_files = []
     for filename in os.listdir(directory):
@@ -165,15 +162,20 @@ class GsdParser:
         texture_files.append(os.path.join(directory, filename))
     return texture_files
 
-def load(context, filepath,
+
+def load(context,
+         filepath,
          *,
          import_shadow_model=False,
          use_vertex_color_materials=False):
   options = import_mdl.Options(import_shadow_model, use_vertex_color_materials)
 
-  # TODO: Wrap with try-except block
-  parser = GsdParser(options)
-  parser.parse(filepath)
-  parser.parse_textures()
+  try:
+    parser = GsdParser(options)
+    parser.parse(filepath)
+    parser.parse_textures()
+  except (GsdImportError, mesh_parser.MeshImportError,
+          materials.ImageImportError) as err:
+    return 'CANCELLED', str(err)
 
   return 'FINISHED', ''

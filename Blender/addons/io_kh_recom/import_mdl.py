@@ -76,7 +76,7 @@ class MdlParser:
         break
       model_basename = '{}_{}'.format(basename, i)
       model_parser.parse(f, model_offs, model_basename)
-    
+
     if model_parser.armature:
       return model_parser.armature.armature_obj
 

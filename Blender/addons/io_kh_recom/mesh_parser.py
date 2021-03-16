@@ -250,13 +250,13 @@ class MeshParser:
           if has_vcol:
             if has_uint_vcol:
               vcol = [
-                  c / f
-                  for c, f in zip(f.read_nuint32(4), (0x100, 0x100, 0x100, 0x80))
+                  c / f for c, f in zip(f.read_nuint32(4), (0x100, 0x100, 0x100,
+                                                            0x80))
               ]
             else:
               vcol = [
-                  c / f
-                  for c, f in zip(f.read_nfloat32(4), (256.0, 256.0, 256.0, 128.0))
+                  c / f for c, f in zip(f.read_nfloat32(4), (256.0, 256.0,
+                                                             256.0, 128.0))
               ]
           if has_uv:
             uv = f.read_nfloat32(2)

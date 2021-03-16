@@ -85,7 +85,7 @@ def read_rsrc_header(f):
       byte_offs = f.read_uint32()
     files.append((filename, byte_offs, byte_size))
     index += 1
-  
+
   return files
 
 
@@ -95,7 +95,7 @@ def maybe_skip_ps4_header(f):
   file_size_test = f.read_uint32()
   gnf_table_count = f.read_int32()
   f.skip(0x8)
-  
+
   if gnf_table_count == 0 and file_size_test == f.filesize - 0x10:
     f.set_base_offset(f.tell())
   elif gnf_table_count > 0 and gnf_table_count < (f.filesize - 0x10) // 0x30:
