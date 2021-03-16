@@ -16,10 +16,11 @@ The default location for extracted files will be a folder named `extract/` in th
 
 Extracts files from packed resource file types. To find these files, run the above extractor on the .ISO first. Supported extensions are:
 
-* .ABC, .BIN, .ESD, .EPD, .GSD, .PTD
+* .ABC, .BIN, .EPD, .PTD
 * .CAP (Camera Data)
 * .CTD (Cutscene Data)
 * .EFF (Particle Effects)
+* .ESD, .GSD (Enemy, Gimmick Stage Data)
 * .RTM, .VTM (TIM2 Images/Textures)
 * .SPR (Sprites)
 * .TXA (Animated Textures)
@@ -45,6 +46,7 @@ Installation Method A:
 4. Ensure the `Community` filter is selected, and locate `Import-Export: Kingdom Hearts Re:Chain of Memories` in the list. Click the checkmark next to this add-on to load it. Close the preferences window.
 5. Go to `File -> Import` and select either from the list of file formats:
     * `Kingdom Hearts Re:COM Stage (.azf)`
+    * `Kingdom Hearts Re:COM Stage Gimmicks (.gsd)`
     * `Kingdom Hearts Re:COM Model (.mdl)`
 
 Installation Method B:
