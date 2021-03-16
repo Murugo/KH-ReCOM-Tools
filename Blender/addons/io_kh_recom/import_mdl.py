@@ -61,11 +61,12 @@ class MdlParser:
     if mat_manager:
       self.mat_manager = mat_manager
     else:
-    self.mat_manager = materials.MaterialManager(options)
+      self.mat_manager = materials.MaterialManager(options)
 
   def parse_model(self, filepath):
     basename = os.path.splitext(os.path.basename(filepath))[0]
     f = readutil.BinaryFileReader(filepath)
+    readutil.maybe_skip_ps4_header(f)
 
     model_parser = ModelParser(self.mat_manager, self.options)
     for i in range(0x100):
@@ -75,7 +76,7 @@ class MdlParser:
         break
       model_basename = '{}_{}'.format(basename, i)
       model_parser.parse(f, model_offs, model_basename)
-
+    
     if model_parser.armature:
       return model_parser.armature.armature_obj
 

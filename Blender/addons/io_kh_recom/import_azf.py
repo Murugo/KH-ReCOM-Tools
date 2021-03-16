@@ -38,6 +38,7 @@ class AzfParser:
   def parse_map(self, filepath):
     basename = os.path.splitext(os.path.basename(filepath))[0]
     f = readutil.BinaryFileReader(filepath)
+    readutil.maybe_skip_ps4_header(f)
 
     instance_table_header_offs = f.read_uint32()
     if instance_table_header_offs == 0 or instance_table_header_offs >= f.filesize:

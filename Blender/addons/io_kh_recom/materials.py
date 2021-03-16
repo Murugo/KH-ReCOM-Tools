@@ -42,6 +42,7 @@ class MaterialManager:
 
   def _load_texture_archive(self, filepath):
     f = readutil.BinaryFileReader(filepath)
+    readutil.maybe_skip_ps4_header(f)
 
     texture_files = readutil.read_rsrc_header(f)
     for texture_name, byte_offs, byte_size in texture_files:
