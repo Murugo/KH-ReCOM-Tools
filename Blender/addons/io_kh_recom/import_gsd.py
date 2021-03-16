@@ -120,9 +120,9 @@ class GsdParser:
           bpy.context.scene.collection.objects.link(obj_new)
           objects.append(obj_new)
           if i > 0:
-            # Parent to new armature
-            # TODO: Objects lose their pose ability after this?
+            # Parent mesh to new armature. The armature is always the first object in the list.
             obj_new.parent = objects[0]
+            obj_new.modifiers['Armature'].object = objects[0]
       
       for obj in objects:
         obj.name += f'_{unique_id}'
