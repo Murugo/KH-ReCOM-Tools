@@ -39,7 +39,7 @@ class ModelParser:
     texture_count = f.read_uint32()
     if texture_count == 0:
       if not self.options.IMPORT_SHADOW_MODEL:
-        return
+        return []
       model_basename += '_shadow'
 
     parser = mesh_parser.MeshParser(
@@ -56,9 +56,12 @@ class ModelParser:
 
 
 class MdlParser:
-  def __init__(self, options):
-    self.mat_manager = materials.MaterialManager(options)
+  def __init__(self, options, mat_manager=None):
     self.options = options
+    if mat_manager:
+      self.mat_manager = mat_manager
+    else:
+    self.mat_manager = materials.MaterialManager(options)
 
   def parse_model(self, filepath):
     basename = os.path.splitext(os.path.basename(filepath))[0]
@@ -72,6 +75,9 @@ class MdlParser:
         break
       model_basename = '{}_{}'.format(basename, i)
       model_parser.parse(f, model_offs, model_basename)
+
+    if model_parser.armature:
+      return model_parser.armature.armature_obj
 
   def parse_textures(self, texture_paths):
     self.mat_manager.load_textures(texture_paths)

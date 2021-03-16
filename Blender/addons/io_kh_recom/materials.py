@@ -19,6 +19,8 @@ class MaterialManager:
   def __init__(self, options):
     # {texture name -> (material, use_vertex_color)}
     self._material_map = dict()
+    # {texture name -> (processed)}
+    self._processed_map = dict()
     self._options = options
 
   def get_material(self, texture_name, use_vertex_color=False):
@@ -41,39 +43,22 @@ class MaterialManager:
   def _load_texture_archive(self, filepath):
     f = readutil.BinaryFileReader(filepath)
 
-    # Parse packed resource header
-    texture_files = []
-    index = 0
-    while True:
-      base_offs = index * 0x20
-      f.seek(base_offs + 0x1C)
-      byte_size = f.read_int32()
-      if not byte_size:
-        break
-      elif byte_size < 0:
-        byte_size &= 0x7FFFFFFF
-        f.seek(base_offs)
-        byte_offs = f.read_uint32()
-        texture_name = f.read_string(0x10)
-      else:
-        f.seek(base_offs)
-        texture_name = f.read_string(0x10)
-        byte_offs = f.read_uint32()
+    texture_files = readutil.read_rsrc_header(f)
+    for texture_name, byte_offs, byte_size in texture_files:
       if texture_name[-4:] == '.tm2':
         texture_name = texture_name[:-4]
-      texture_files.append((texture_name, byte_offs, byte_size))
-      index += 1
-
-    for texture_name, byte_offs, byte_size in texture_files:
       self._load_single_texture(f, texture_name, byte_offs, byte_size)
 
   def _load_single_texture(self, f, texture_name, offs, size):
     if texture_name not in self._material_map:
       print(f'Texture is unused: {texture_name}')
       return
+    if texture_name in self._processed_map:
+      return
 
     f.seek(offs)
     if f.read_uint32() != 0x324D4954:  # "TIM2"
+      print(f'Not a TIM2 file: {texture_name}')
       return
     f.skip(2)
     image_count = f.read_uint16()
@@ -122,6 +107,8 @@ class MaterialManager:
 
     tex_node = material.node_tree.nodes.new('ShaderNodeTexImage')
     tex_node.image = image
+
+    self._processed_map[texture_name] = True
 
     if use_vertex_color and self._options.USE_VERTEX_COLOR_MATERIALS:
       vcol_node = material.node_tree.nodes.new('ShaderNodeVertexColor')

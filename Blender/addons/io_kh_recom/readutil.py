@@ -55,4 +55,31 @@ class BinaryFileReader:
     return buf[:offs].decode('ascii')
 
   def skip(self, length):
-    self.seek(self.tell() + length)
+    self.f.read(length)
+
+
+# Returns a list of tuples of the form (filename, byte_offs, byte_size).
+def read_rsrc_header(f):
+  files = []
+
+  index = 0
+  f.seek(0)
+  while True:
+    base_offs = index * 0x20
+    f.seek(base_offs + 0x1C)
+    byte_size = f.read_int32()
+    if not byte_size:
+      break
+    elif byte_size < 0:
+      byte_size &= 0x7FFFFFFF
+      f.seek(base_offs)
+      byte_offs = f.read_uint32()
+      filename = f.read_string(0x14)
+    else:
+      f.seek(base_offs)
+      filename = f.read_string(0x10)
+      byte_offs = f.read_uint32()
+    files.append((filename, byte_offs, byte_size))
+    index += 1
+  
+  return files
