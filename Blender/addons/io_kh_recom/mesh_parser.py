@@ -180,16 +180,17 @@ class MeshParser:
       # exact distinctions are unknown. The render mode specifies which
       # microsubroutine to run in order to process vertex data and send draw
       # instructions to the GIF.
-      has_uv = has_vcol = False
+      has_uv = has_vcol = has_uint_vcol = False
       if mode == 0x10:  # Pos
         vertex_byte_size = 0x20
       elif mode == 0x6:  # Pos, UV
         vertex_byte_size = 0x30
         has_uv = True
-      elif mode in (0x0, 0x24, 0x200, 0x406, 0x400B):  # Pos, Color, UV
+      elif mode in (0x0, 0x5, 0x24, 0x200, 0x406, 0x400B):  # Pos, Color, UV
         vertex_byte_size = 0x40
         has_uv = True
         has_vcol = True
+        has_uint_vcol = mode in (0x0, 0x5, 0x24, 0x200)
       else:
         raise MeshImportError('Unrecognized render mode {} at offset {}'.format(
             hex(mode), hex(offs + 0x1C)))
@@ -247,10 +248,16 @@ class MeshParser:
                      @ mathutils.Vector(vtx_local))
 
           if has_vcol:
-            vcol = [
-                c / f
-                for c, f in zip(f.read_nuint32(4), (0x100, 0x100, 0x100, 0x80))
-            ]
+            if has_uint_vcol:
+              vcol = [
+                  c / f
+                  for c, f in zip(f.read_nuint32(4), (0x100, 0x100, 0x100, 0x80))
+              ]
+            else:
+              vcol = [
+                  c / f
+                  for c, f in zip(f.read_nfloat32(4), (256.0, 256.0, 256.0, 128.0))
+              ]
           if has_uv:
             uv = f.read_nfloat32(2)
 
