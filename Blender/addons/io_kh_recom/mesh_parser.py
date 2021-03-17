@@ -24,10 +24,12 @@ class Armature:
 
 
 class Submesh:
-  def __init__(self, object_name, armature):
+  def __init__(self, object_name, armature, invert_normals=False):
     self._armature = armature
+    self.invert_normals = invert_normals
 
     self.vtx = []
+    self.vn = []
     self.uv = []
     self.vcol = []
     self.tri = []
@@ -56,6 +58,9 @@ class Submesh:
           for vt in pair
       ])
 
+    if self.invert_normals:
+      self.mesh_data.flip_normals()
+
     if skip_vertex_groups:
       return
     for i, v_list in enumerate(self.bone_vertex_list):
@@ -64,6 +69,18 @@ class Submesh:
       group = self.mesh_obj.vertex_groups.new(name=self._armature.bone_names[i])
       for v, weight in v_list:
         group.add([v], weight, 'ADD')
+
+  def update_normals(self):
+    if not self.vn:
+      return
+
+    vn_loop = []
+    for face in self.mesh_data.polygons:
+      for vertex_index in face.vertices:
+        vn_loop.append(self.vn[vertex_index])
+      face.use_smooth = True
+    self.mesh_data.use_auto_smooth = True
+    self.mesh_data.normals_split_custom_set(vn_loop)
 
 
 class MeshParser:
@@ -180,23 +197,36 @@ class MeshParser:
       # exact distinctions are unknown. The render mode specifies which
       # microsubroutine to run in order to process vertex data and send draw
       # instructions to the GIF.
-      has_uv = has_vcol = has_uint_vcol = False
+      has_vnormal = has_uv = has_vcol = has_uint_vcol = False
+      invert_normals = False
       if mode == 0x10:  # Pos
         vertex_byte_size = 0x20
       elif mode == 0x6:  # Pos, UV
         vertex_byte_size = 0x30
         has_uv = True
+      elif mode == 0x4205:  # Pos, UV (Musashi reflective texture?)
+        vertex_byte_size = 0x30
+        has_uv = True
+      elif mode == 0x4009:  # Pos, Color (Musashi inverse hull)
+        vertex_byte_size = 0x30
+        has_vcol = True
+        invert_normals = True
       elif mode in (0x0, 0x5, 0x24, 0x200, 0x406, 0x400B):  # Pos, Color, UV
         vertex_byte_size = 0x40
         has_uv = True
         has_vcol = True
         has_uint_vcol = mode in (0x0, 0x5, 0x24, 0x200)
+      elif mode == 0x406E:  # Pos, Normal, Color, UV (Musashi stages)
+        vertex_byte_size = 0x50
+        has_vnormal = True
+        has_uv = True
+        has_vcol = True
       else:
         raise MeshImportError('Unrecognized render mode {} at offset {}'.format(
             hex(mode), hex(offs + 0x1C)))
 
       # Only the first vertex determines the texture to apply.
-      if has_uv:
+      if has_uv and mode != 0x4205:
         f.seek(offs + vertex_byte_size + 0x2C)
         texture_index = f.read_uint16()
       else:
@@ -207,7 +237,8 @@ class MeshParser:
       else:
         submesh = submesh_dict[texture_index] = Submesh(
             '{}_mat{}{}'.format(basename, texture_index,
-                                '_t' if is_translucent else ''), self._armature)
+                                '_t' if is_translucent else ''), self._armature,
+            invert_normals)
 
       v_start = len(submesh.vtx)
       v_offs = offs + 0x30
@@ -247,6 +278,9 @@ class MeshParser:
           vtx.append(self._armature.bone_matrices[bone_index]
                      @ mathutils.Vector(vtx_local))
 
+          if has_vnormal:
+            vn = f.read_nfloat32(4)[:3]
+
           if has_vcol:
             if has_uint_vcol:
               vcol = [
@@ -267,6 +301,8 @@ class MeshParser:
         for v_elem in vtx:
           v_mixed += v_elem
         submesh.vtx.append(v_mixed.to_3d().to_tuple())
+        if has_vnormal:
+          submesh.vn.append(vn)
         if has_vcol:
           submesh.vcol.append(vcol)
         if has_uv:
@@ -292,6 +328,8 @@ class MeshParser:
       objects.append(mesh.mesh_obj)
 
       bpy.context.scene.collection.objects.link(mesh.mesh_obj)
+
+      mesh.update_normals()
       mesh.mesh_obj.select_set(state=True)
 
     return objects
