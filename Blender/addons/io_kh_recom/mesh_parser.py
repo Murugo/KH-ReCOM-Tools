@@ -125,7 +125,7 @@ class MeshParser:
       f.seek(bone_table_offs + i * 0x14)
       bone_name = f.read_string(0x10)
       parent_index = f.read_int16()
-      index = f.read_int16()
+      bone_index = i
 
       f.seek(transform_table_offs + i * 0x40)
       local_matrix = mathutils.Matrix([f.read_nfloat32(4) for _ in range(4)])
@@ -137,8 +137,8 @@ class MeshParser:
       else:
         global_matrix = local_matrix
 
-      armature.bone_matrices[index] = global_matrix
-      armature.bone_names[index] = bone_name
+      armature.bone_matrices[bone_index] = global_matrix
+      armature.bone_names[bone_index] = bone_name
 
       if not self._skip_armature_creation:
         bone = armature.armature_data.edit_bones.new(bone_name)
