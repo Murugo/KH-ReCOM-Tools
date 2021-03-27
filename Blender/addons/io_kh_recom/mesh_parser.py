@@ -204,6 +204,9 @@ class MeshParser:
       elif mode == 0x6:  # Pos, UV
         vertex_byte_size = 0x30
         has_uv = True
+      elif mode in (0x2, 0x4005):  # Pos, Normal
+        vertex_byte_size = 0x30
+        has_vnormal = True
       elif mode == 0x4205:  # Pos, UV (Musashi reflective texture?)
         vertex_byte_size = 0x30
         has_uv = True
@@ -216,7 +219,7 @@ class MeshParser:
         has_uv = True
         has_vcol = True
         has_uint_vcol = mode in (0x0, 0x5, 0x24, 0x200)
-      elif mode == 0x406E:  # Pos, Normal, Color, UV (Musashi stages)
+      elif mode in (0x406E, 0x40EE):  # Pos, Normal, Color, UV (Musashi stages)
         vertex_byte_size = 0x50
         has_vnormal = True
         has_uv = True
